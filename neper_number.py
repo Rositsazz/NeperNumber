@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from multiprocessing import Process, Queue
-from math import factorial
+from math import factorial, ceil
 from decimal import Decimal, getcontext
 from timeit import default_timer
 
@@ -22,26 +22,24 @@ quiet_mode = arguments.quiet
 filename = arguments.output
 DEC_1 = Decimal(1)
 
-def split_sections(members, threads):
-   section_length = members / threads
-   sections = []
-   for i in range(threads):
-       sections.append(range(i*section_length,(i+1)*section_length))
 
-   sections[-1].extend(range(sections[-1][-1], members))
-   return sections
+def split_sections_equaly(members, threads):
+    ns = ceil(members / threads)
+    return [list(range(j, members, ns)) for j in range(ns)]
+
 
 def calculator(section, thread, res, quiet_mode):
     member_res = 0
     if not quiet_mode:
-        print "Thread {0} is running".format(thread + 1)
+        print("Thread {0} is running".format(thread + 1))
     for i in section:
-        member_res += DEC_1/Decimal(factorial(i))
+        member_res += float(DEC_1 / Decimal(factorial(i)))
     res.put(member_res)
+
 
 def main():
     res = Queue()
-    sections = split_sections(members, threads)
+    sections = split_sections_equaly(members, threads)
 
     start_time = default_timer()
     processes = []
@@ -57,15 +55,15 @@ def main():
         p.join()
 
     final_time = default_timer() - start_time
-    msg = "Threads: %s\nMembers: %s\nTime: %s\nNeper number: %s\n" % (threads,
-            members, unicode(str(final_time), "utf-8"), neper_number)
+    msg = "Threads: {}\nMembers: {}\nTime: {}\nNeper number: {}\n".format(threads,
+                                                                          members, str(final_time), neper_number)
 
     if not quiet_mode:
         print(msg)
     if filename:
         with open(filename, 'a') as f:
-            delimeter = "="*80
-            f.write(delimeter + "\n" + msg)
+            f.write("=" * 80 + "\n" + msg)
+
 
 if __name__ == '__main__':
     main()
