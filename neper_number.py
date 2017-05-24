@@ -42,17 +42,12 @@ def main():
     sections = split_sections_equaly(members, threads)
 
     start_time = default_timer()
-    processes = []
     for t in range(threads):
         p = Process(target=calculator,
-                    args=(sections[t],
-                          t, res, quiet_mode))
-        processes.append(p)
+                    args=(sections[t], t, res, quiet_mode))
         p.start()
 
-    neper_number = sum([res.get() for thread in range(0, threads)])
-    for p in processes:
-        p.join()
+    neper_number = sum([res.get() for _ in range(0, threads)])
 
     final_time = default_timer() - start_time
     msg = "Threads: {}\nMembers: {}\nTime: {}\nNeper number: {}\n".format(threads,
